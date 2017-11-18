@@ -6,6 +6,7 @@ import { default as config, ENV } from '../config';
 
 export function appMiddleware(app: Express) {
     return (req: Request, res: Response, next: NextFunction) => {
+        console.log("middleware");
         // Serve static server only in production mode. In any other modes, treat this as a standalone API server.
         if (config.environment === ENV.prod) {
             app.use(express.static(path.join(__dirname, '../../../../client/dist')));
