@@ -32,9 +32,14 @@ export let controller = {
       let result: any = {};
       if(player === Games[gId].board.turn) {
         let game = Games[gId];
+        console.log("SUGGESTED MOVE", game.board.minimax(player, 2, 0));
+
         let piece = game.board.getPos(move[0]);
         if(piece.type !== "empty" && piece.owner === player) {
           let canJumpAgain = piece.moveTo(game.board, move[1]);
+          //if(piece.position[0] != move[1][0] || piece.position[1] != move[1][1]) {
+            //console.log("ERROR PIECE POSITION NOT UPDATED", piece);
+          //}
           game.board.print();
           result = game.json();
           if(!canJumpAgain) {

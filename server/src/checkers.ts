@@ -3,6 +3,15 @@ import Chalk from 'chalk';
 
 export type Coord = [number, number];
 
+function flatMap<A, B>(items: A[], fn: (a: A) => B[]): B[] {
+  let result: B[] = [];
+  for(let item of items) {
+    let b = fn(item);
+    result = result.concat(b);
+  }
+  return result;
+}
+
 export class Empty {
   type: "empty";
   constructor() {
@@ -26,7 +35,7 @@ export abstract class Piece {
 
     let xdiff = position[0] - this.position[0], ydiff = position[1] - this.position[1];
     let hopped: [number, number] = [this.position[0] + xdiff/2, this.position[1] + ydiff/2];
-    console.log(this.position,position,hopped)
+    //console.log(this.position,position,hopped)
 
     // update position in board, replace with Empty
     board.setPos(this.position, new Empty());
@@ -36,7 +45,7 @@ export abstract class Piece {
     // if an opponent piece was jumped then 
     if(Math.abs(xdiff) > 1) {
       let piece = board.getPos(hopped);
-      console.log(hopped, piece);
+      //console.log(hopped, piece);
       if(piece.type === "pawn" || piece.type === "king") {
         // increment points for owner
         if(piece.owner === 0) {
@@ -96,9 +105,11 @@ export class PawnPiece extends Piece {
   }
 
   canJump(board: Board, piece: Piece | Empty, xdir: number): boolean {
+    let destination: Coord = [this.position[0]+2 * xdir, this.position[1]+2 * this.direction];
     return piece.type !== "empty"
       && piece.owner !== this.owner
-      && board.getPos([this.position[0]+2 * xdir, this.position[1]+2 * this.direction]).type === "empty";
+      && board.exists(destination) !== null
+      && board.getPos(destination).type === "empty";
   }
 
   copy(): PawnPiece {
@@ -135,9 +146,11 @@ export class KingPiece extends Piece {
   }
 
   canJump(board: Board, piece: Piece | Empty, xdir: number, ydir: number): boolean {
+    let destination: Coord = [this.position[0]+2 * xdir, this.position[1]+ 2 * ydir];
     return piece.type !== "empty"
       && piece.owner !== this.owner
-      && board.getPos([this.position[0]+2 * xdir, this.position[1]+ 2 * ydir]).type === "empty";
+      && board.exists(destination) !== null
+      && board.getPos(destination).type === "empty";
   }
 
 
@@ -202,7 +215,7 @@ export class Board {
     return null;
   }
 
-  getPlayerMoves(player: 0 | 1) {
+  getPlayerMoves(player: 0 | 1): {piece: Piece, moves: [number,number][]}[] {
     return this.gamePieces
           .filter(piece => piece.owner === player)
           .map(piece => ({piece, moves: piece.getAvailableMoves(this)})).
@@ -242,11 +255,16 @@ export class Board {
     const board = new Board(this.height, this.width, this.player_rows);
     board.turn = this.turn;
     board.points = Object.assign({}, this.points);
+    board.gamePieces = [];
 
     for(let y = 0; y < this.height; y++) {
       board.positions[y] = [];
       for(let x = 0; x < this.width; x++) {
-        board.positions[y][x] = this.positions[y][x].copy();
+        let piece = this.positions[y][x].copy();
+        if(piece.type !== "empty") {
+        board.gamePieces.push(piece)
+        }
+        board.positions[y][x] = piece;
       }
     }
 
@@ -286,6 +304,57 @@ export class Board {
     //console.log("position Score:", position_score);
 
     return score + jump_score + king_count + position_score;
+  }
+
+  minimax(player: 0 | 1, maxDepth: number, currentDepth: number): [number, [Coord, Coord] | null] {
+    if(currentDepth ===  maxDepth) {
+      return [this.evaluate(player), null]
+    }
+
+    let bestMove: [Coord, Coord] | null = null;
+    let bestScore: number;
+    if(this.turn === player) {
+      bestScore = -Infinity;
+    }else{
+      bestScore = Infinity;
+    }
+
+    let playerMoves = this.getPlayerMoves(this.turn);
+    let possibleMoves: {piece: Piece, coord: Coord}[] = flatMap(playerMoves, move => {
+      return move.moves.map(coord => ({piece: move.piece, coord: coord}));
+    });
+
+    for(let move of possibleMoves) {
+      let nextboard: Board = this.copy();
+      let piece: Piece | Empty = nextboard.getPos(move.piece.position);
+      let canJumpAgain: boolean = false;
+      if(piece.type === "empty") {
+        throw new Error("Attempting to move empty space");
+      }else{
+        canJumpAgain = piece.moveTo(nextboard, move.coord);
+      }
+
+      if(!canJumpAgain) {
+        nextboard.turn = nextboard.turn === 0 ? 1 : 0;
+      }
+
+      let [currentScore, currentMove] = nextboard.minimax(player, maxDepth, currentDepth+1);
+
+      if(this.turn === player) {
+        if(currentScore > bestScore) {
+          bestScore = currentScore;
+          bestMove = [move.piece.position, move.coord]
+        }
+      }else{
+        if(currentScore < bestScore) {
+          bestScore = currentScore;
+          bestMove = [move.piece.position, move.coord];
+        }
+      }
+    }
+
+  return [bestScore, bestMove];
+
   }
 }
 
