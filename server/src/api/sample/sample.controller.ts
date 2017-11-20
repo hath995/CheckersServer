@@ -25,7 +25,7 @@ export let controller = {
         next();
     },
     playMove: (req: Request, res: Response, next: NextFunction) => {
-      let player: number = Number(req.params.player);
+      let player: 0 | 1 = <0 | 1>Number(req.params.player);
       let gId: number = req.params.id;
       console.log(req.body, "Body");
       let move: [[number, number],[number, number]] = req.body.move;
@@ -46,6 +46,7 @@ export let controller = {
 
         }
       }
+      console.log("Score", Games[gId].board.evaluate(player));
 
       res.json(result);
       next();

@@ -252,6 +252,41 @@ export class Board {
 
     return board;
   }
+
+  //scoring function to help ai evaluate board positions
+  evaluate(player: 0 | 1): number {
+    let score: number = 0;
+    if(player === 0) {
+      score += 1000 * this.points.black - 600 * this.points.white;
+    }else{
+      score += 1000 * this.points.white - 600 * this.points.black;
+    }
+    //console.log("Point Score:", score);
+
+    //increase score if a piece can jump another
+    let available_moves = this.getPlayerMoves(player);
+    let jump_score = available_moves.reduce((score, pmove) => {
+      return pmove.moves.reduce((count, position) => {
+        return (Math.abs(pmove.piece.position[0] - position[0]) > 1 ? 1 : 0) + count;
+      }, 0) + score;
+    }, 0) * 10;
+
+    //console.log("Jump Score:", jump_score);
+
+    //increasing the number of kings
+    let king_count = this.gamePieces
+      .filter(piece => piece.owner === player)
+      .reduce((score, p) => (p.type === "king" ? 30 : 10) + score, 0)
+    //console.log("King Score:", king_count);
+
+    //increase score if a piece moves forward
+    let position_score = this.gamePieces
+      .filter(piece => piece.owner === player)
+      .reduce((score, piece) => (player === 0 ? piece.position[1] :  Math.abs(piece.position[1] - (this.height - 1))) + score, 0)
+    //console.log("position Score:", position_score);
+
+    return score + jump_score + king_count + position_score;
+  }
 }
 
 export class Game {
