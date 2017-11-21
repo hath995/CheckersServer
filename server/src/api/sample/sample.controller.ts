@@ -1,14 +1,21 @@
 import { Request, Response, NextFunction } from 'express';
 import {Game, Board} from '../../checkers';
 
-console.log("haa??");
 let Games: Game[] = [];
+let DEBUG = true;
 export let controller = {
     getById: (req: Request, res: Response, next: NextFunction) => {
         let gId = req.params.id; 
         if(!Games[gId]) {
-          Games[gId] = new Game();
+        
+          if(DEBUG) {
+            Games[gId] = new Game({"board":[["#","b","#","#","#","#","#","#"],["#","#","b","#","#","#","#","#"],["#","b","#","b","#","w","#","b"],["w","#","#","#","#","#","#","#"],["#","#","#","b","#","#","#","b"],["#","#","#","#","#","#","b","#"],["#","#","#","#","#","#","#","#"],["#","#","#","#","#","#","#","#"]],"turn":1});
+            console.log("ASDF");
+          }else{
+            Games[gId] = new Game();
+          }
         }
+        Games[gId].board.print();
         res.json(Games[gId].json());
         next();
     },
@@ -32,7 +39,7 @@ export let controller = {
       let result: any = {};
       if(player === Games[gId].board.turn) {
         let game = Games[gId];
-        console.log("SUGGESTED MOVE", game.board.minimax(player, 2, 0));
+        //console.log("SUGGESTED MOVE", game.board.minimax(player, 4, 0));
 
         let piece = game.board.getPos(move[0]);
         if(piece.type !== "empty" && piece.owner === player) {
@@ -52,6 +59,42 @@ export let controller = {
         }
       }
       console.log("Score", Games[gId].board.evaluate(player));
+
+      res.json(result);
+      next();
+    },
+    ai: (req: Request, res: Response, next: NextFunction) => {
+      let gId: number = req.params.id;
+      let result: any = {};
+      if(1 === Games[gId].board.turn) {
+        let game = Games[gId];
+        let now: any = new Date();
+        let [score,move] = game.board.minimax(1, 5, 0);
+        console.log(score,move);
+        console.log("DEPTH 2", (<any>new Date())-<number>now);
+        if(move === null) {
+          throw new Error("null move illegal");
+        }
+        console.log("SUGGESTED MOVE", move, score);
+
+        let piece = game.board.getPos(move[0]);
+        if(piece.type !== "empty" && piece.owner === 1) {
+          let canJumpAgain = piece.moveTo(game.board, move[1]);
+          //if(piece.position[0] != move[1][0] || piece.position[1] != move[1][1]) {
+            //console.log("ERROR PIECE POSITION NOT UPDATED", piece);
+          //}
+          game.board.print();
+          result = game.json();
+          if(!canJumpAgain) {
+            game.board.turn = game.board.turn === 0 ? 1 : 0;
+            result.turn = game.board.turn
+          }else{
+            result.moves = game.board.getPlayerMoves(1);
+          }
+
+        }
+      }
+      console.log("Score", Games[gId].board.evaluate(1));
 
       res.json(result);
       next();

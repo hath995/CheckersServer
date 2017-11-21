@@ -74,6 +74,16 @@ export abstract class Piece {
         throw new Error("Cannot jump empty square");
       }
     }
+
+    // check if becomes king 
+    if(this.type === "pawn" && (position[1] === 0 || position[1] === board.height-1)) {
+      //replace piece on board with KingPiece
+      let king = new KingPiece(this.owner, position);
+      board.setPos(position, king);
+      board.gamePieces.splice(board.gamePieces.indexOf(this), 1, king);
+
+      return false;
+    }
     return false;
   }
 }
@@ -121,7 +131,7 @@ export class KingPiece extends Piece {
 
   constructor(owner: 0 | 1, position: [number, number]) {
     super();
-    this.type = "pawn";
+    this.type = "king";
     this.position = position;
     this.owner = owner;
   }
@@ -159,6 +169,15 @@ export class KingPiece extends Piece {
   }
 }
 
+interface iGameState {
+  board: string[][],
+  turn: 0 | 1,
+  points?: {
+    black: number,
+    white: number
+  }
+}
+
 export class Board {
   positions: (Empty | Piece)[][];
   width: number;
@@ -170,7 +189,7 @@ export class Board {
     black: number,
     white: number
   };
-  constructor(h: number = 8, w: number = 8, player_rows = 3, positions = null) {
+  constructor(h: number = 8, w: number = 8, player_rows = 3, gameState: null | iGameState = null) {
     this.width = w;
     this.height = h;
     this.positions = [];
@@ -182,7 +201,7 @@ export class Board {
       white: 0
     }
 
-    if(positions === null) {
+    if(gameState === null) {
       for(let y = 0; y < this.height; y++) {
         let color: 0 | 1 = y < player_rows ? 0 : 1;
         this.positions[y] = [];
@@ -197,6 +216,35 @@ export class Board {
           }
         }
       }
+    }else{
+      for(let y = 0; y < this.height; y++) {
+        this.positions[y] = [];
+        for(let x = 0; x < this.width; x++) {
+          let piece: Piece | Empty;
+          switch(gameState.board[y][x]) {
+            case 'b':
+              piece = new PawnPiece(0,[x,y]);
+              break;
+            case 'B':
+              piece = new KingPiece(0,[x,y]);
+              break;
+            case 'w':
+              piece = new PawnPiece(1,[x,y]);
+              break;
+            case 'W':
+              piece = new KingPiece(1,[x,y]);
+              break;
+            default:
+              piece = new Empty();
+          }
+          if(piece.type !== "empty") {
+            this.gamePieces.push(piece);
+          }
+          this.positions[y][x] = piece;
+        }
+      }
+      this.turn = gameState.turn || 0;
+      this.points = gameState.points || this.points;
     }
   }
 
@@ -228,7 +276,7 @@ export class Board {
       let line = "";
       for(let x = 0; x < this.width; x++) {
         const pos = this.getPos([x,y]);
-        line += (pos.type === "empty" ? "#" : pos.owner === 0 ? Chalk.red("B") : Chalk.green("W")) + " ";
+        line += (pos.type === "empty" ? "#" : pos.owner === 0 ? (pos.type === "pawn" ? Chalk.red('b') : Chalk.red("B")) : (pos.type === "pawn" ? Chalk.green("w") : Chalk.green("W"))) + " ";
       }
       result += line + ` ${y}\n`;
     }
@@ -246,6 +294,7 @@ export class Board {
     }
     return {
       board,
+      points: this.points,
       turn: this.turn,
     }
 
@@ -362,8 +411,12 @@ export class Game {
   board: Board;
   turnSecret: number;
 
-  constructor() {
-    this.board = new Board();
+  constructor(gameState: iGameState | undefined = undefined) {
+    if(!gameState) {
+      this.board = new Board();
+    }else{
+      this.board = new Board(8,8,3,gameState);
+    }
     this.updateTurnSecret();
   }
   

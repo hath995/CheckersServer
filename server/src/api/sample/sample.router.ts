@@ -12,6 +12,8 @@ router.route('/:id')
     .get(controller.getById)
     .delete(controller.delete);
 
+router.route('/:id/ai')
+    .get(controller.ai);
 
 router.route('/:id/:player/move')
     .post(bodyParser.json(), controller.playMove)
