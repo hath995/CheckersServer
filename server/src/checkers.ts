@@ -189,6 +189,7 @@ export class Board {
     black: number,
     white: number
   };
+  replay: [Coord, Coord][] = [];
   constructor(h: number = 8, w: number = 8, player_rows = 3, gameState: null | iGameState = null) {
     this.width = w;
     this.height = h;
@@ -295,6 +296,7 @@ export class Board {
     return {
       board,
       points: this.points,
+      replay: this.replay,
       turn: this.turn,
     }
 
@@ -305,6 +307,7 @@ export class Board {
     board.turn = this.turn;
     board.points = Object.assign({}, this.points);
     board.gamePieces = [];
+    board.replay = this.replay.slice();
 
     for(let y = 0; y < this.height; y++) {
       board.positions[y] = [];

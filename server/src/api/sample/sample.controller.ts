@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import {Game, Board} from '../../checkers';
 
 let Games: Game[] = [];
-let DEBUG = true;
+let DEBUG = false;
 export let controller = {
     getById: (req: Request, res: Response, next: NextFunction) => {
         let gId = req.params.id; 
@@ -10,7 +10,6 @@ export let controller = {
         
           if(DEBUG) {
             Games[gId] = new Game({"board":[["#","b","#","#","#","#","#","#"],["#","#","b","#","#","#","#","#"],["#","b","#","b","#","w","#","b"],["w","#","#","#","#","#","#","#"],["#","#","#","b","#","#","#","b"],["#","#","#","#","#","#","b","#"],["#","#","#","#","#","#","#","#"],["#","#","#","#","#","#","#","#"]],"turn":1});
-            console.log("ASDF");
           }else{
             Games[gId] = new Game();
           }
@@ -44,6 +43,7 @@ export let controller = {
         let piece = game.board.getPos(move[0]);
         if(piece.type !== "empty" && piece.owner === player) {
           let canJumpAgain = piece.moveTo(game.board, move[1]);
+          game.board.replay.push(move);
           //if(piece.position[0] != move[1][0] || piece.position[1] != move[1][1]) {
             //console.log("ERROR PIECE POSITION NOT UPDATED", piece);
           //}
@@ -80,6 +80,7 @@ export let controller = {
         let piece = game.board.getPos(move[0]);
         if(piece.type !== "empty" && piece.owner === 1) {
           let canJumpAgain = piece.moveTo(game.board, move[1]);
+          game.board.replay.push(move);
           //if(piece.position[0] != move[1][0] || piece.position[1] != move[1][1]) {
             //console.log("ERROR PIECE POSITION NOT UPDATED", piece);
           //}
