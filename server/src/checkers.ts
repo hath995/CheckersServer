@@ -91,6 +91,14 @@ export abstract class Piece {
     }
     return false;
   }
+
+  canJump(board: Board, piece: Piece | Empty, jumpPosition: Coord): boolean {
+    return piece.type !== "empty"
+      && piece.owner !== this.owner
+      && board.exists(jumpPosition) !== null
+      && board.getPos(jumpPosition).type === "empty";
+  }
+
 }
 
 export class PawnPiece extends Piece {
@@ -108,23 +116,15 @@ export class PawnPiece extends Piece {
       const possiblePosition: [number, number] = [this.position[X]+newx, this.position[Y]+this.direction];
       if(board.exists(possiblePosition) !== null) {
         const boardPos = board.getPos(possiblePosition);
+        const jumpPosition: [number, number] = [this.position[X]+2 * newx, this.position[Y]+2 * this.direction];
         if(boardPos.type === "empty") {
           options.push(possiblePosition);
-        } else if(this.canJump(board, boardPos, newx)) {
-          let jumpPosition: [number, number] = [this.position[X]+2 * newx, this.position[Y]+2 * this.direction];
+        } else if(this.canJump(board, boardPos, jumpPosition)) {
           options.push(jumpPosition);
         }
       }
     }
     return options;
-  }
-
-  canJump(board: Board, piece: Piece | Empty, xdir: number): boolean {
-    let destination: Coord = [this.position[X]+2 * xdir, this.position[Y]+2 * this.direction];
-    return piece.type !== "empty"
-      && piece.owner !== this.owner
-      && board.exists(destination) !== null
-      && board.getPos(destination).type === "empty";
   }
 
   copy(): PawnPiece {
@@ -148,10 +148,10 @@ export class KingPiece extends Piece {
         const possiblePosition: [number, number] = [this.position[X]+xdir, this.position[Y]+ydir];
         if(board.exists(possiblePosition) !== null) {
           const boardPos = board.getPos(possiblePosition);
+          let jumpPosition: [number, number] = [this.position[X]+2 * xdir, this.position[Y]+ 2 * ydir];
           if(boardPos.type === "empty") {
             options.push(possiblePosition);
-          } else if(this.canJump(board, boardPos, xdir, ydir)) {
-            let jumpPosition: [number, number] = [this.position[X]+2 * xdir, this.position[Y]+ 2 * ydir];
+          } else if(this.canJump(board, boardPos, jumpPosition)) {
             options.push(jumpPosition);
           }
         }
@@ -159,15 +159,6 @@ export class KingPiece extends Piece {
     }
     return options;
   }
-
-  canJump(board: Board, piece: Piece | Empty, xdir: number, ydir: number): boolean {
-    let destination: Coord = [this.position[X]+2 * xdir, this.position[Y]+ 2 * ydir];
-    return piece.type !== "empty"
-      && piece.owner !== this.owner
-      && board.exists(destination) !== null
-      && board.getPos(destination).type === "empty";
-  }
-
 
   copy(): KingPiece {
     return new KingPiece(this.owner, <[number,number]>this.position.slice());
@@ -249,7 +240,7 @@ export class Board {
           this.positions[y][x] = piece;
         }
       }
-      this.turn = gameState.turn || 0;
+      this.turn = gameState.turn || BLACK;
       this.points = gameState.points || this.points;
     }
   }
