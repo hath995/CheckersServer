@@ -22,13 +22,15 @@ export let controller = {
         res.json({hello: true});
         next();
     },
-    put: (req: Request, res: Response, next: NextFunction) => {
-        res.json({ok: true});
-        next();
-    },
     delete: (req: Request, res: Response, next: NextFunction) => {
         res.json({ok: true});
         next();
+    },
+    getPlayer: (req: Request, res: Response, next: NextFunction) => {
+      let gId: number = req.params.id;
+      let game = Games[gId];
+      res.json({player: Games[gId].getPlayer()});
+      next();
     },
     playMove: (req: Request, res: Response, next: NextFunction) => {
       let player: 0 | 1 = <0 | 1>Number(req.params.player);

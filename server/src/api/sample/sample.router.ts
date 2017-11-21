@@ -12,6 +12,10 @@ router.route('/:id')
     .get(controller.getById)
     .delete(controller.delete);
 
+
+router.route('/:id/player')
+    .get(controller.getPlayer)
+
 router.route('/:id/ai')
     .get(controller.ai);
 

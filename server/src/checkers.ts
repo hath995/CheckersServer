@@ -413,6 +413,7 @@ export class Board {
 export class Game {
   board: Board;
   turnSecret: number;
+  players: [boolean, boolean];
 
   constructor(gameState: iGameState | undefined = undefined) {
     if(!gameState) {
@@ -420,8 +421,20 @@ export class Game {
     }else{
       this.board = new Board(8,8,3,gameState);
     }
+    this.players = [false, false];
     this.updateTurnSecret();
   }
+
+  getPlayer() {
+    for(let i of [0,1]) {
+      if(!this.players[i]) {
+        this.players[i] = true;
+        return i;
+      }
+    }
+    return null;
+  }
+
   
   json() {
     return this.board.json();
