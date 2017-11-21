@@ -361,7 +361,7 @@ export class Board {
       .reduce((score, piece) => {
         if(piece.type === "king") {
             return opposing_pieces
-              .map(enemy => 20 - Math.min(Math.abs(enemy.position[X]-piece.position[X]), Math.abs(enemy.position[Y]-piece.position[Y])))
+              .map(enemy => 20 - Math.max(Math.abs(enemy.position[X]-piece.position[X]), Math.abs(enemy.position[Y]-piece.position[Y])))
               .reduce((distancePoints, points) => Math.max(distancePoints, points)) + score;
         }else{
           if(player === BLACK) { 
