@@ -2,6 +2,11 @@
 import Chalk from 'chalk';
 
 export type Coord = [number, number];
+export const BLACK = 0;
+export const WHITE = 1;
+
+export const X = 0;
+export const Y = 1;
 
 function flatMap<A, B>(items: A[], fn: (a: A) => B[]): B[] {
   let result: B[] = [];
@@ -33,8 +38,8 @@ export abstract class Piece {
 
   moveTo(board: Board, position: [number, number]): boolean {
 
-    let xdiff = position[0] - this.position[0], ydiff = position[1] - this.position[1];
-    let hopped: [number, number] = [this.position[0] + xdiff/2, this.position[1] + ydiff/2];
+    let xdiff = position[X] - this.position[X], ydiff = position[Y] - this.position[Y];
+    let hopped: [number, number] = [this.position[X] + xdiff/2, this.position[Y] + ydiff/2];
     //console.log(this.position,position,hopped)
 
     // update position in board, replace with Empty
@@ -48,7 +53,7 @@ export abstract class Piece {
       //console.log(hopped, piece);
       if(piece.type === "pawn" || piece.type === "king") {
         // increment points for owner
-        if(piece.owner === 0) {
+        if(piece.owner === BLACK) {
           board.points.white++;
         }else{
           board.points.black++;
@@ -59,7 +64,7 @@ export abstract class Piece {
         board.gamePieces.splice(board.gamePieces.indexOf(piece), 1);
 
         // check if becomes king 
-        if(this.type === "pawn" && (position[1] === 0 || position[1] === board.height-1)) {
+        if(this.type === "pawn" && (position[Y] === 0 || position[Y] === board.height-1)) {
           //replace piece on board with KingPiece
           let king = new KingPiece(this.owner, position);
           board.setPos(position, king);
@@ -76,7 +81,7 @@ export abstract class Piece {
     }
 
     // check if becomes king 
-    if(this.type === "pawn" && (position[1] === 0 || position[1] === board.height-1)) {
+    if(this.type === "pawn" && (position[Y] === 0 || position[Y] === board.height-1)) {
       //replace piece on board with KingPiece
       let king = new KingPiece(this.owner, position);
       board.setPos(position, king);
@@ -100,13 +105,13 @@ export class PawnPiece extends Piece {
   getAvailableMoves(board: Board): [number,number][] {
     let options = [];
     for(let newx of [1,-1]) {
-      const possiblePosition: [number, number] = [this.position[0]+newx, this.position[1]+this.direction];
+      const possiblePosition: [number, number] = [this.position[X]+newx, this.position[Y]+this.direction];
       if(board.exists(possiblePosition) !== null) {
         const boardPos = board.getPos(possiblePosition);
         if(boardPos.type === "empty") {
           options.push(possiblePosition);
         } else if(this.canJump(board, boardPos, newx)) {
-          let jumpPosition: [number, number] = [this.position[0]+2 * newx, this.position[1]+2 * this.direction];
+          let jumpPosition: [number, number] = [this.position[X]+2 * newx, this.position[Y]+2 * this.direction];
           options.push(jumpPosition);
         }
       }
@@ -115,7 +120,7 @@ export class PawnPiece extends Piece {
   }
 
   canJump(board: Board, piece: Piece | Empty, xdir: number): boolean {
-    let destination: Coord = [this.position[0]+2 * xdir, this.position[1]+2 * this.direction];
+    let destination: Coord = [this.position[X]+2 * xdir, this.position[Y]+2 * this.direction];
     return piece.type !== "empty"
       && piece.owner !== this.owner
       && board.exists(destination) !== null
@@ -140,13 +145,13 @@ export class KingPiece extends Piece {
     let options = [];
     for(let xdir of [1,-1]) {
       for(let ydir of [1,-1]) {
-        const possiblePosition: [number, number] = [this.position[0]+xdir, this.position[1]+ydir];
+        const possiblePosition: [number, number] = [this.position[X]+xdir, this.position[Y]+ydir];
         if(board.exists(possiblePosition) !== null) {
           const boardPos = board.getPos(possiblePosition);
           if(boardPos.type === "empty") {
             options.push(possiblePosition);
           } else if(this.canJump(board, boardPos, xdir, ydir)) {
-            let jumpPosition: [number, number] = [this.position[0]+2 * xdir, this.position[1]+ 2 * ydir];
+            let jumpPosition: [number, number] = [this.position[X]+2 * xdir, this.position[Y]+ 2 * ydir];
             options.push(jumpPosition);
           }
         }
@@ -156,7 +161,7 @@ export class KingPiece extends Piece {
   }
 
   canJump(board: Board, piece: Piece | Empty, xdir: number, ydir: number): boolean {
-    let destination: Coord = [this.position[0]+2 * xdir, this.position[1]+ 2 * ydir];
+    let destination: Coord = [this.position[X]+2 * xdir, this.position[Y]+ 2 * ydir];
     return piece.type !== "empty"
       && piece.owner !== this.owner
       && board.exists(destination) !== null
@@ -204,7 +209,7 @@ export class Board {
 
     if(gameState === null) {
       for(let y = 0; y < this.height; y++) {
-        let color: 0 | 1 = y < player_rows ? 0 : 1;
+        let color: 0 | 1 = y < player_rows ? BLACK : WHITE;
         this.positions[y] = [];
 
         for(let x = 0; x < this.width; x++) {
@@ -224,16 +229,16 @@ export class Board {
           let piece: Piece | Empty;
           switch(gameState.board[y][x]) {
             case 'b':
-              piece = new PawnPiece(0,[x,y]);
+              piece = new PawnPiece(BLACK, [x,y]);
               break;
             case 'B':
-              piece = new KingPiece(0,[x,y]);
+              piece = new KingPiece(BLACK, [x,y]);
               break;
             case 'w':
-              piece = new PawnPiece(1,[x,y]);
+              piece = new PawnPiece(WHITE, [x,y]);
               break;
             case 'W':
-              piece = new KingPiece(1,[x,y]);
+              piece = new KingPiece(WHITE, [x,y]);
               break;
             default:
               piece = new Empty();
@@ -277,7 +282,7 @@ export class Board {
       let line = "";
       for(let x = 0; x < this.width; x++) {
         const pos = this.getPos([x,y]);
-        line += (pos.type === "empty" ? "#" : pos.owner === 0 ? (pos.type === "pawn" ? Chalk.red('b') : Chalk.red("B")) : (pos.type === "pawn" ? Chalk.green("w") : Chalk.green("W"))) + " ";
+        line += (pos.type === "empty" ? "#" : pos.owner === BLACK ? (pos.type === "pawn" ? Chalk.red('b') : Chalk.red("B")) : (pos.type === "pawn" ? Chalk.green("w") : Chalk.green("W"))) + " ";
       }
       result += line + ` ${y}\n`;
     }
@@ -290,7 +295,7 @@ export class Board {
       board[y] = [];
       for(let x = 0; x < this.width; x++) {
         const pos = this.getPos([x,y]);
-        board[y][x] = pos.type === "empty" ? "#" : pos.owner === 0 ? (pos.type === "pawn" ? "b" : "B") : (pos.type === "pawn" ? "w" : "W");
+        board[y][x] = pos.type === "empty" ? "#" : pos.owner === BLACK ? (pos.type === "pawn" ? "b" : "B") : (pos.type === "pawn" ? "w" : "W");
       }
     }
     return {
@@ -326,7 +331,7 @@ export class Board {
   //scoring function to help ai evaluate board positions
   evaluate(player: 0 | 1): number {
     let score: number = 0;
-    if(player === 0) {
+    if(player === BLACK) {
       score += 1000 * this.points.black - 600 * this.points.white;
     }else{
       score += 1000 * this.points.white - 600 * this.points.black;
@@ -337,7 +342,7 @@ export class Board {
     let available_moves = this.getPlayerMoves(player);
     let jump_score = available_moves.reduce((score, pmove) => {
       return pmove.moves.reduce((count, position) => {
-        return (Math.abs(pmove.piece.position[0] - position[0]) > 1 ? 1 : 0) + count;
+        return (Math.abs(pmove.piece.position[X] - position[X]) > 1 ? 1 : 0) + count;
       }, 0) + score;
     }, 0) * 10;
 
@@ -349,10 +354,23 @@ export class Board {
       .reduce((score, p) => (p.type === "king" ? 30 : 10) + score, 0)
     //console.log("King Score:", king_count);
 
+    let opposing_pieces = this.gamePieces.filter(piece => piece.owner === (player === BLACK ? WHITE : BLACK));
     //increase score if a piece moves forward
     let position_score = this.gamePieces
       .filter(piece => piece.owner === player)
-      .reduce((score, piece) => (player === 0 ? piece.position[1] :  Math.abs(piece.position[1] - (this.height - 1))) + score, 0)
+      .reduce((score, piece) => {
+        if(piece.type === "king") {
+            return opposing_pieces
+              .map(enemy => 20 - Math.min(Math.abs(enemy.position[X]-piece.position[X]), Math.abs(enemy.position[Y]-piece.position[Y])))
+              .reduce((distancePoints, points) => Math.max(distancePoints, points)) + score;
+        }else{
+          if(player === BLACK) { 
+              return piece.position[Y] + score
+          }else{ 
+              return Math.abs(piece.position[Y] - (this.height - 1)) + score
+          }
+        }
+      }, 0)
     //console.log("position Score:", position_score);
 
     return score + jump_score + king_count + position_score;
@@ -387,7 +405,7 @@ export class Board {
       }
 
       if(!canJumpAgain) {
-        nextboard.turn = nextboard.turn === 0 ? 1 : 0;
+        nextboard.turn = nextboard.turn === BLACK ? WHITE : BLACK;
       }
 
       let [currentScore, currentMove] = nextboard.minimax(player, maxDepth, currentDepth+1);
@@ -426,10 +444,10 @@ export class Game {
   }
 
   getPlayer() {
-    for(let i of [0,1]) {
-      if(!this.players[i]) {
-        this.players[i] = true;
-        return i;
+    for(let color of [BLACK, WHITE]) {
+      if(!this.players[color]) {
+        this.players[color] = true;
+        return color;
       }
     }
     return null;

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import {Game, Board} from '../../checkers';
+import {Game, Board, BLACK, WHITE} from '../../checkers';
 
 let Games: Game[] = [];
 let DEBUG = false;
@@ -52,7 +52,7 @@ export let controller = {
           game.board.print();
           result = game.json();
           if(!canJumpAgain) {
-            game.board.turn = game.board.turn === 0 ? 1 : 0;
+            game.board.turn = game.board.turn === BLACK ? WHITE : BLACK;
             result.turn = game.board.turn
           }else{
             result.moves = game.board.getPlayerMoves(player);
@@ -89,7 +89,7 @@ export let controller = {
           game.board.print();
           result = game.json();
           if(!canJumpAgain) {
-            game.board.turn = game.board.turn === 0 ? 1 : 0;
+            game.board.turn = game.board.turn === BLACK ? WHITE : BLACK;
             result.turn = game.board.turn
           }else{
             result.moves = game.board.getPlayerMoves(1);
