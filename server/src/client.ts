@@ -12,25 +12,36 @@ var begin_game = request('http://localhost:3000/api/sample/1', (e,r,b) => {
   let input = "";
 
   function goAgain() {
-    rl.question('Where do you want to move?\n', (answer) => {
-      if(answer === "quit") {
-        rl.close();
-        return;
+    request.get('http://localhost:3000/api/sample/1/0/move', (e,r,b) => {
+      let body = JSON.parse(b);
+      let i = 1;
+      for(let move of body.moves) {
+        let dests = move.moves.forEach(m => {
+          console.log(`${i}) ${move.piece.position} ${m}`)
+          i++;
+        });
       }
-      //answer = "1,2 3,4"
-      let coords = answer.split(" ").map(p => p.split(",").map(Number));
-      request.post({
-        url:'http://localhost:3000/api/sample/1/0/move',
-        json: {move: coords}
-      }, (error, response, body) => {
-        console.log(body, typeof body);
-        if(body.turn == 1) {
-          playAi();
-        }else{
-          goAgain();
+
+      rl.question('Where do you want to move?\n', (answer) => {
+        if(answer === "quit") {
+          rl.close();
+          return;
         }
+        //answer = "1,2 3,4"
+        let coords = answer.split(" ").map(p => p.split(",").map(Number));
+        request.post({
+          url:'http://localhost:3000/api/sample/1/0/move',
+          json: {move: coords}
+        }, (error, response, body) => {
+          console.log(JSON.stringify(body, null, 2));
+          if(body.turn == 1) {
+            playAi();
+          }else{
+            goAgain();
+          }
+        })
       })
-    })
+    });
   }
 
   function playAi() {

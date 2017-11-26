@@ -86,8 +86,6 @@ export abstract class Piece {
       let king = new KingPiece(this.owner, position);
       board.setPos(position, king);
       board.gamePieces.splice(board.gamePieces.indexOf(this), 1, king);
-
-      return false;
     }
     return false;
   }
@@ -261,10 +259,25 @@ export class Board {
   }
 
   getPlayerMoves(player: 0 | 1): {piece: Piece, moves: [number,number][]}[] {
-    return this.gamePieces
-          .filter(piece => piece.owner === player)
-          .map(piece => ({piece, moves: piece.getAvailableMoves(this)})).
-          filter(o => o.moves.length > 0)
+    let jumps = false;
+    let moves = this.gamePieces
+      .filter(piece => piece.owner === player)
+      .map(piece => {
+        let availableMoves = piece.getAvailableMoves(this);
+        if(!jumps && availableMoves.some(m => Math.abs(piece.position[X]-m[0]) > 1)) {
+          jumps = true;
+        }
+        return {piece, moves: availableMoves}
+      }).
+      filter(o => o.moves.length > 0)
+
+    if(jumps) {
+      moves = moves.map(o => {
+        let coords = o.moves.filter(m => Math.abs(o.piece.position[X]-m[0]) > 1);
+        return {piece: o.piece, moves: coords};
+      }).filter(o => o.moves.length > 0);
+    }
+    return moves;
   }
 
   print() {
