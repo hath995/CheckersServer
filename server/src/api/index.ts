@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { sampleRouter } from './sample/sample.router';
+import { gameRouter } from './game/game.router';
 
 let router = Router();
-router.use('/sample', sampleRouter);
+router.use('/game', gameRouter);
 
 export let apiRouter = router;
 

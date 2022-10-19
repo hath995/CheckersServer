@@ -1,11 +1,11 @@
 {
-  "name": "node-ts-app",
+  "name": "Checkers-server",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "npm run build:live",
-    "build": "node ./node_modules/typescript/lib/tsc",
+    "start": "npx ts-node index.ts",
+    "build": "npx tsc",
     "build:live": "nodemon --exec ./node_modules/.bin/ts-node -- index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
