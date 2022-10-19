@@ -5,7 +5,7 @@ let Games: Game[] = [];
 let DEBUG = false;
 export let controller = {
     getById: (req: Request, res: Response, next: NextFunction) => {
-        let gId = req.params.id; 
+        let gId = parseInt(req.params.id); 
         if(!Games[gId]) {
         
           if(DEBUG) {
@@ -27,14 +27,14 @@ export let controller = {
         next();
     },
     getPlayer: (req: Request, res: Response, next: NextFunction) => {
-      let gId: number = req.params.id;
+      let gId: number = parseInt(req.params.id);
       let game = Games[gId];
       res.json({player: Games[gId].getPlayer()});
       next();
     },
     playMove: (req: Request, res: Response, next: NextFunction) => {
       let player: 0 | 1 = <0 | 1>Number(req.params.player);
-      let gId: number = req.params.id;
+      let gId: number = parseInt(req.params.id);
       console.log(req.body, "Body");
       let move: [[number, number],[number, number]] = req.body.move;
       let result: any = {};
@@ -66,7 +66,7 @@ export let controller = {
       next();
     },
     ai: (req: Request, res: Response, next: NextFunction) => {
-      let gId: number = req.params.id;
+      let gId: number = parseInt(req.params.id);
       let result: any = {};
       if(1 === Games[gId].board.turn) {
         let game = Games[gId];
@@ -104,7 +104,7 @@ export let controller = {
     },
     getMove: (req: Request, res: Response, next: NextFunction) => {
       let player: number = Number(req.params.player);
-      let gId: number = req.params.id;
+      let gId: number = parseInt(req.params.id);
       if(player === Games[gId].board.turn) {
         let states = Games[gId].json();
         let moves = Games[gId].board.getPlayerMoves(player);

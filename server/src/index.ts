@@ -1,5 +1,5 @@
-import * as express from 'express';
-import * as cors from 'cors';
+import express from 'express';
+import cors from 'cors';
 import { apiRouter } from './api';
 import { appMiddleware, errorHandler } from './middleware';
 import logger from './util/logger';

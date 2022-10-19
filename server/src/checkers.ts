@@ -1,5 +1,5 @@
 
-import Chalk from 'chalk';
+let Chalk = require('chalk');
 
 export type Coord = [number, number];
 export const BLACK = 0;
@@ -33,6 +33,12 @@ export abstract class Piece {
   position: [number, number];
   direction: -1 | 1;
 
+  constructor() {
+    this.type = "pawn";
+    this.owner = 0;
+    this.position = [0,0];
+    this.direction = 1;
+  }
   abstract getAvailableMoves(board: Board): [number, number][];
   abstract copy(): Piece;
 
@@ -438,6 +444,7 @@ export class Game {
   players: [boolean, boolean];
 
   constructor(gameState: iGameState | undefined = undefined) {
+    this.turnSecret = 1;
     if(!gameState) {
       this.board = new Board();
     }else{

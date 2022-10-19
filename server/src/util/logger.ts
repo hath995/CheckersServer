@@ -1,6 +1,5 @@
 // no var needed here, colors will attached colors
 // to String.prototype
-import 'colors';
 import config from '../config';
 
 // create a noop (no operation) function for when loggin is disabled

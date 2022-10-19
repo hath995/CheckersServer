@@ -1,6 +1,6 @@
 
 import * as readline from 'readline';
-import * as request from 'request';
+import request from 'request';
 
 
 const rl = readline.createInterface({
