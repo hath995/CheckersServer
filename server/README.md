@@ -7,6 +7,7 @@
 1. `npm start` - Starts the node server using  using ts-node
 2. `npm run build` - Builds the application and puts the generated javascript files into dist folder
 3. `npm run build:live` - server will run and restart upon code changes
+4. `npm run cli` - run a simple client in the command line to play against the ai, copy paste cordinates to move
 
 ## Route Reference
 
